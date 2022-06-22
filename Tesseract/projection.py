@@ -5,7 +5,9 @@ import numpy as np
 class Projection:
     def __init__(self, rotated_3d):
         DISTANCE = 5
-        TESSERACT_ROTATION =  np.array(
+
+        # 'rotazione della camera'
+        TESSERACT_ROTATION =  np.array( 
             [
                 [1, 0, 0],
                 [0, math.cos(-math.pi/2), -math.sin(-math.pi/2)],
