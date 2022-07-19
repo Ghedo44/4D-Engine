@@ -1,11 +1,18 @@
+from turtle import color
 import numpy as np
 import pygame as pg
+import random
 
 class Tesseract:
     def __init__(self, render, point_color, edge_color):
         self.render = render
         self.point_color = point_color
         self.edge_color = edge_color
+
+        self.color = []
+        for _ in range(16):
+            self.color.append(tuple(map(lambda a : a * random.randint(0, 255), [1,1,1])))
+        
 
     def vertices(self):
         points = []
@@ -30,6 +37,8 @@ class Tesseract:
 
         return points
 
+        
+
     def connect_point(self, i, j, k, offset):
         a = k[i + offset]
         b = k[j + offset]
@@ -51,5 +60,8 @@ class Tesseract:
             self.connect_point(m,  m+8, projected_points, 0)
 
     #draw points
-    def draw_points(self, x, y):
-        pg.draw.circle(self.render, self.point_color, (x, y), 10)
+    def draw_points(self, x, y, i):
+        pg.draw.circle(self.render, self.color[i], (x, y), 10)
+
+if __name__ == '__main__':
+    print('c')

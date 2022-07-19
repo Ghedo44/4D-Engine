@@ -1,6 +1,9 @@
+from re import X
 import pygame as pg
 import numpy as np
 import tkinter as tk
+
+from traitlets import default
 
 from tesseract import Tesseract
 from matrix_transformation import *
@@ -9,7 +12,7 @@ from projection import Projection
 class SoftwareRender:
     def __init__(self):
         pg.init()
-        self.RES = self.WIDTH, self.HEIGHT = 1920, 1080
+        self.RES = self.WIDTH, self.HEIGHT = 1600, 900
         self.FPS = 60
         self.screen = pg.display.set_mode(self.RES, pg.RESIZABLE)
         self.clock = pg.time.Clock()
@@ -49,18 +52,42 @@ class SoftwareRender:
         self.yzrot = tk.IntVar()
         self.ywrot = tk.IntVar()
 
-        self.czwrot = tk.Checkbutton(self.main_dialog, text='Rotation 4D ZW plane',variable=self.zwrot, onvalue=0, offvalue=1)
-        self.czwrot.pack()
-        self.cxyrot = tk.Checkbutton(self.main_dialog, text='Rotation 4D XY plane',variable=self.xyrot, onvalue=0, offvalue=1)
-        self.cxyrot.pack()
-        self.cxzrot = tk.Checkbutton(self.main_dialog, text='Rotation 4D XZ plane',variable=self.xzrot, onvalue=1, offvalue=0)
-        self.cxzrot.pack()
-        self.cxwrot = tk.Checkbutton(self.main_dialog, text='Rotation 4D XW plane',variable=self.xwrot, onvalue=1, offvalue=0)
-        self.cxwrot.pack()
-        self.cyzrot = tk.Checkbutton(self.main_dialog, text='Rotation 4D XZ plane',variable=self.yzrot, onvalue=1, offvalue=0)
-        self.cyzrot.pack()
-        self.cywrot = tk.Checkbutton(self.main_dialog, text='Rotation 4D XW plane',variable=self.ywrot, onvalue=1, offvalue=0)
-        self.cywrot.pack()
+        tk.Checkbutton(self.main_dialog, text='Rotation 4D ZW plane',variable=self.zwrot, onvalue=0, offvalue=1).pack()
+        tk.Checkbutton(self.main_dialog, text='Rotation 4D XY plane',variable=self.xyrot, onvalue=0, offvalue=1).pack()
+        tk.Checkbutton(self.main_dialog, text='Rotation 4D XZ plane',variable=self.xzrot, onvalue=1, offvalue=0).pack()
+        tk.Checkbutton(self.main_dialog, text='Rotation 4D XW plane',variable=self.xwrot, onvalue=1, offvalue=0).pack()
+        tk.Checkbutton(self.main_dialog, text='Rotation 4D YZ plane',variable=self.yzrot, onvalue=1, offvalue=0).pack()
+        tk.Checkbutton(self.main_dialog, text='Rotation 4D YW plane',variable=self.ywrot, onvalue=1, offvalue=0).pack()
+
+        #Create an Entry widget to accept User Input
+        x = tk.Entry(self.main_dialog)
+        x.insert(tk.END, '90')
+        x.focus_set()
+        x.pack()
+
+        self.x_angle =  int(x.get())
+
+        y = tk.Entry(self.main_dialog)
+        y.insert(tk.END, '0')
+        y.focus_set()
+        y.pack()
+
+        self.y_angle =  int(y.get())
+
+        z = tk.Entry(self.main_dialog)
+        z.insert(tk.END, '0')
+        z.focus_set()
+        z.pack()
+
+        self.z_angle =  int(z.get())
+
+        tk.Button(self.main_dialog,text="Ok",command=lambda:self.ok(int(x.get()), int(y.get()), int(z.get()))).pack()
+
+    def ok(self, x, y, z):
+        self.x_angle =  x
+        self.y_angle =  y
+        self.z_angle =  z
+
 
     def quit_callback(self):
         self.done = True
@@ -92,6 +119,7 @@ class SoftwareRender:
 
                 rotated_3d = point.reshape((4, 1))
 
+                #4D rotation
                 if self.xyrot.get() == 0:
                     rotated_3d = np.dot(rotation4d_xy(self.angle), rotated_3d)
 
@@ -110,11 +138,12 @@ class SoftwareRender:
                 if self.ywrot.get() == 1:
                     rotated_3d = np.dot(rotation4d_yw(self.angle), rotated_3d)
 
-                projection = Projection(rotated_3d)
+                projection = Projection(rotated_3d, self.x_angle, self.y_angle, self.z_angle)
 
 
                 projected_3d = np.dot(projection.projection_matrix4, rotated_3d)
 
+                #3D rottion
                 rotated_2d = projected_3d
                 if self.xrot.get() == 0:
                     rotated_2d = np.dot(rotation_x(self.angle), rotated_2d)
@@ -131,7 +160,7 @@ class SoftwareRender:
 
                 projected_points[index] = [x, y]
 
-                self.tesseract.draw_points(x, y)
+                self.tesseract.draw_points(x, y, index)
                 index += 1
 
             self.tesseract.draw_edges(projected_points)
